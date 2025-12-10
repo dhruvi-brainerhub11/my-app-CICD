@@ -10,7 +10,7 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'my-app-alb-1553941597.ap-south-1.elb.amazonaws.com/api/health';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Fetch all users
   const fetchUsers = async () => {
