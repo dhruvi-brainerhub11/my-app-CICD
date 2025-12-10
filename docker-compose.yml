@@ -39,7 +39,8 @@ services:
       DB_NAME: myappdb
       PORT: 5000
       NODE_ENV: development
-      CORS_ORIGIN: my-app-alb-1553941597.ap-south-1.elb.amazonaws.com/api/health
+      CORS_ORIGIN: http://localhost
+    depends_on:
       mysql:
         condition: service_healthy
     volumes:
@@ -57,7 +58,7 @@ services:
     ports:
       - "80:80"
     environment:
-      REACT_APP_API_URL: my-app-alb-1553941597.ap-south-1.elb.amazonaws.com/api/health
+      REACT_APP_API_URL: http://localhost:5000
     depends_on:
       - backend
     networks:

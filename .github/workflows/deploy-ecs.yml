@@ -7,12 +7,14 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: ap-south-1 # Change to your region
+  AWS_REGION: ap-south-1
   ECS_CLUSTER: user-app-cluster
   ECS_SERVICE_BACKEND: user-app-backend-service
   ECS_SERVICE_FRONTEND: user-app-frontend-service
   ECS_TASK_DEFINITION_BACKEND: user-app-backend
   ECS_TASK_DEFINITION_FRONTEND: user-app-frontend
+  RDS_ENDPOINT: myappdb.c9oq2ky8kisq.ap-south-1.rds.amazonaws.com
+  ALB_DNS: user-app-alb-508171731.ap-south-1.elb.amazonaws.com
 
 jobs:
   deploy:

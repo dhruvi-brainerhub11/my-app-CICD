@@ -10,9 +10,11 @@ on:
       - main
      
 env:
-  AWS_REGION: ap-south-1  # Change to your region
+  AWS_REGION: ap-south-1
   ECR_REGISTRY_BACKEND: user-app-backend
   ECR_REGISTRY_FRONTEND: user-app-frontend
+  RDS_ENDPOINT: myappdb.c9oq2ky8kisq.ap-south-1.rds.amazonaws.com
+  ALB_DNS: user-app-alb-508171731.ap-south-1.elb.amazonaws.com
 
 jobs:
   build-and-push:
