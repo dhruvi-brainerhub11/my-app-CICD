@@ -7,7 +7,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || 'my-app-alb-1553941597.ap-south-1.elb.amazonaws.com/api/health',
   credentials: true
 }));
 app.use(express.json());
