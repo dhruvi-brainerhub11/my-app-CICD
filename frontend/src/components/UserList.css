@@ -1,0 +1,142 @@
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 3px;
+}
+
+.user-list::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}
+
+.user-card {
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 15px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.user-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  background: #fff;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.user-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.info-item .label {
+  font-weight: 600;
+  color: #666;
+  min-width: 70px;
+}
+
+.info-item .value {
+  color: #333;
+  word-break: break-word;
+  flex: 1;
+}
+
+.info-item .message {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 100px;
+  overflow-y: auto;
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 3px solid #667eea;
+}
+
+.info-item.timestamp {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #ddd;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .user-list {
+    max-height: none;
+  }
+
+  .user-card {
+    padding: 12px;
+  }
+
+  .user-header h3 {
+    font-size: 1rem;
+  }
+
+  .info-item {
+    font-size: 0.9rem;
+  }
+
+  .delete-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 1.2rem;
+  }
+}

@@ -1,0 +1,75 @@
+name: Build and Push to ECR
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  AWS_REGION: us-east-1  # Change to your region
+  ECR_REGISTRY_BACKEND: user-app-backend
+  ECR_REGISTRY_FRONTEND: user-app-frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Backend image
+        id: build-backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REGISTRY_BACKEND:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REGISTRY_BACKEND:latest ./backend
+          docker push $ECR_REGISTRY/$ECR_REGISTRY_BACKEND:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REGISTRY_BACKEND:latest
+          echo "image=$ECR_REGISTRY/$ECR_REGISTRY_BACKEND:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push Frontend image
+        id: build-frontend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REGISTRY_FRONTEND:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REGISTRY_FRONTEND:latest ./frontend
+          docker push $ECR_REGISTRY/$ECR_REGISTRY_FRONTEND:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REGISTRY_FRONTEND:latest
+          echo "image=$ECR_REGISTRY/$ECR_REGISTRY_FRONTEND:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Image digests
+        run: |
+          echo "Backend Image: ${{ steps.build-backend.outputs.image }}"
+          echo "Frontend Image: ${{ steps.build-frontend.outputs.image }}"
+
+      - name: Deploy to ECS (optional - only on main branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "Update ECS task definitions with new images:"
+          echo "Backend: $ECR_REGISTRY/$ECR_REGISTRY_BACKEND:$IMAGE_TAG"
+          echo "Frontend: $ECR_REGISTRY/$ECR_REGISTRY_FRONTEND:$IMAGE_TAG"
+          # Add your ECS deployment script here
