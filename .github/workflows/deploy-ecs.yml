@@ -14,7 +14,7 @@ env:
   ECS_TASK_DEFINITION_BACKEND: user-app-backend
   ECS_TASK_DEFINITION_FRONTEND: user-app-frontend
   RDS_ENDPOINT: myappdb.c9oq2ky8kisq.ap-south-1.rds.amazonaws.com
-  ALB_DNS: user-app-alb-508171731.ap-south-1.elb.amazonaws.com
+  ALB_DNS: my-app-alb-844843851.ap-south-1.elb.amazonaws.com
 
 jobs:
   deploy:
