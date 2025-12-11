@@ -1,105 +1,39 @@
 {
-    "compatibilities": [
-        "EC2",
-        "MANAGED_INSTANCES",
-        "FARGATE"
-    ],
-    "containerDefinitions": [
+  "family": "user-app-frontend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::619576923139:role/dhruvi-task-role",
+  "taskRoleArn": "arn:aws:iam::619576923139:role/dhruvi-task-role",
+  "containerDefinitions": [
+    {
+      "name": "user-app-frontend",
+      "image": "DUMMY_FRONTEND_IMAGE_WILL_BE_REPLACED",
+      "essential": true,
+      "environment": [
+        { "name": "REACT_APP_API_URL", "value": "my-app-alb-844843851.ap-south-1.elb.amazonaws.com" }
+      ],
+      "portMappings": [
         {
-            "cpu": 0,
-            "environment": [
-                {
-                    "name": "REACT_APP_API_URL",
-                    "value": "my-app-alb-844843851.ap-south-1.elb.amazonaws.com"
-                }
-            ],
-            "essential": true,
-            "healthCheck": {
-                "command": [
-                    "CMD-SHELL",
-                    "curl -f http://localhost:3000/ || exit 1"
-                ],
-                "interval": 30,
-                "retries": 3,
-                "startPeriod": 3,
-                "timeout": 5
-            },
-            "image": "619576923139.dkr.ecr.ap-south-1.amazonaws.com/user-app-frontend",
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "/ecs/user-app-frontend",
-                    "awslogs-create-group": "true",
-                    "awslogs-region": "ap-south-1",
-                    "awslogs-stream-prefix": "frontend"
-                }
-            },
-            "mountPoints": [],
-            "name": "user-app-frontend",
-            "portMappings": [
-                {
-                    "appProtocol": "http",
-                    "containerPort": 3000,
-                    "hostPort": 3000,
-                    "name": "user-app-frontend-3000-tcp",
-                    "protocol": "tcp"
-                }
-            ],
-            "systemControls": [],
-            "volumesFrom": []
+          "containerPort": 3000,
+          "protocol": "tcp"
         }
-    ],
-    "cpu": "512",
-    "executionRoleArn": "arn:aws:iam::619576923139:role/dhruvi-task-role",
-    "family": "user-app-frontend",
-    "memory": "1024",
-    "networkMode": "awsvpc",
-    "placementConstraints": [],
-    "registeredAt": "2025-12-11T09:43:18.389Z",
-    "registeredBy": "arn:aws:iam::619576923139:root",
-    "requiresAttributes": [
-        {
-            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-        },
-        {
-            "name": "ecs.capability.execution-role-awslogs"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.ecr-auth"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.task-iam-role"
-        },
-        {
-            "name": "ecs.capability.container-health-check"
-        },
-        {
-            "name": "ecs.capability.execution-role-ecr-pull"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "name": "ecs.capability.task-eni"
-        },
-        {
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/user-app-frontend",
+          "awslogs-region": "ap-south-1",
+          "awslogs-stream-prefix": "frontend"
         }
-    ],
-    "requiresCompatibilities": [
-        "FARGATE"
-    ],
-    "revision": 9,
-    "runtimePlatform": {
-        "cpuArchitecture": "X86_64",
-        "operatingSystemFamily": "LINUX"
-    },
-    "status": "ACTIVE",
-    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:619576923139:task-definition/user-app-frontend:9",
-    "taskRoleArn": "arn:aws:iam::619576923139:role/dhruvi-task-role",
-    "volumes": [],
-    "tags": []
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3
+      }
+    }
+  ]
 }
