@@ -41,10 +41,10 @@ docker build -t user-app-frontend .
 
 Run:
 ```bash
-docker run -p 80:80 user-app-frontend
+docker run -p 3000:3000 user-app-frontend
 ```
 
-Access at http://localhost
+Access at http://localhost:3000
 
 ## Features
 
