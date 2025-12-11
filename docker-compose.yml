@@ -7,9 +7,9 @@ services:
     container_name: user-app-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: user_app_db
+      MYSQL_DATABASE: myappdb
       MYSQL_USER: admin
-      MYSQL_PASSWORD: admin123
+      MYSQL_PASSWORD: Admin123
     ports:
       - "3306:3306"
     volumes:
@@ -56,7 +56,7 @@ services:
       dockerfile: Dockerfile
     container_name: user-app-frontend
     ports:
-      - "80:80"
+      - "3000:80"
     environment:
       REACT_APP_API_URL: http://localhost:5000
     depends_on:

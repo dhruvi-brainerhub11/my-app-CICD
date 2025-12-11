@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+
 import UserForm from './components/UserForm';
 import UserList from './components/UserList';
 
@@ -10,101 +11,99 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+  // Backend API
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Fetch all users
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
+
     try {
       const response = await axios.get(`${API_URL}/api/users`);
       setUsers(response.data.data);
     } catch (err) {
-      console.error('Error fetching users:', err);
-      const msg = err.response?.data?.error || err.message || 'Failed to fetch users';
-      setError(`Failed to fetch users: ${msg}`);
+      const msg = err.response?.data?.error || 'Failed to fetch users';
+      setError(msg);
       setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Handle form submission
+  // Add user (convert frontend fields → backend fields)
   const handleAddUser = async (formData) => {
     try {
-      const response = await axios.post(`${API_URL}/api/users`, formData);
-      setSuccess('User added successfully!');
+      await axios.post(`${API_URL}/api/users`, {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone || null
+      });
+
+      setSuccess("User added successfully!");
       setError(null);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
-      
-      // Refresh user list
+      setTimeout(() => setSuccess(null), 2500);
+
       fetchUsers();
     } catch (err) {
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError('Failed to add user. Please try again.');
-      }
+      const msg = err.response?.data?.error || "Failed to add user.";
+      setError(msg);
+      setSuccess(null);
     }
   };
 
-  // Handle delete user
+  // Delete user
   const handleDeleteUser = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
-      return;
-    }
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
       await axios.delete(`${API_URL}/api/users/${id}`);
-      setSuccess('User deleted successfully!');
-      setError(null);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(null), 3000);
-      
-      // Refresh user list
+      setSuccess("User deleted successfully!");
+      setTimeout(() => setSuccess(null), 2500);
+
       fetchUsers();
     } catch (err) {
-      setError('Failed to delete user. Please try again.');
-      setSuccess(null);
-      console.error('Error deleting user:', err);
+      setError("Failed to delete user. Try again.");
     }
   };
 
   return (
     <div className="App">
       <div className="container">
+
         <header className="header">
           <h1>Dhruvi's User Input Application</h1>
-          <p>Manage your user information efficiently</p>
+          <p>Manage user information easily</p>
         </header>
 
         {success && <div className="alert alert-success">{success}</div>}
         {error && <div className="alert alert-error">{error}</div>}
 
         <div className="content">
+
+          {/* Form */}
           <div className="form-section">
             <h2>Add New User</h2>
             <UserForm onSubmit={handleAddUser} />
           </div>
 
+          {/* List */}
           <div className="list-section">
             <h2>Users List ({users.length})</h2>
+
             {loading ? (
               <div className="loading">Loading users...</div>
             ) : users.length === 0 ? (
-              <div className="empty-state">No users found. Add one to get started!</div>
+              <div className="empty-state">No users found.</div>
             ) : (
               <UserList users={users} onDelete={handleDeleteUser} />
             )}
           </div>
+
         </div>
       </div>
     </div>
