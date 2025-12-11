@@ -13,11 +13,13 @@
       "essential": true,
       "environment": [
         { "name": "DB_NAME", "value": "myappdb" },
-        { "name": "PORT", "value": "3306" },
         { "name": "DB_HOST", "value": "myappdb.c9oq2ky8kisq.ap-south-1.rds.amazonaws.com" },
+        { "name": "DB_PORT", "value": "3306" },
         { "name": "DB_USER", "value": "admin" },
         { "name": "DB_PASSWORD", "value": "Admin123456" },
-        { "name": "CORS_ORIGIN", "value": "my-app-alb-844843851.ap-south-1.elb.amazonaws.com" }
+        { "name": "PORT", "value": "5000" },
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "CORS_ORIGIN", "value": "http://user-app-alb-508171731.ap-south-1.elb.amazonaws.com" }
       ],
       "portMappings": [
         {
@@ -34,7 +36,7 @@
         }
       },
       "healthCheck": {
-        "command": ["CMD-SHELL", "curl -f http://localhost:5000/ || exit 1"],
+        "command": ["CMD-SHELL", "curl -f http://localhost:5000/api/health || exit 1"],
         "interval": 30,
         "timeout": 5,
         "retries": 3
