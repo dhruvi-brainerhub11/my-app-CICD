@@ -1,19 +1,29 @@
 {
     "compatibilities": [
         "EC2",
-        "FARGATE",
-        "MANAGED_INSTANCES"
+        "MANAGED_INSTANCES",
+        "FARGATE"
     ],
     "containerDefinitions": [
         {
             "cpu": 0,
             "environment": [
                 {
-                    "name": "CORS_ORIGIN",
+                    "name": "REACT_APP_API_URL",
                     "value": "my-app-alb-844843851.ap-south-1.elb.amazonaws.com"
                 }
             ],
             "essential": true,
+            "healthCheck": {
+                "command": [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:3000/ || exit 1"
+                ],
+                "interval": 30,
+                "retries": 3,
+                "startPeriod": 3,
+                "timeout": 5
+            },
             "image": "619576923139.dkr.ecr.ap-south-1.amazonaws.com/user-app-frontend",
             "logConfiguration": {
                 "logDriver": "awslogs",
@@ -21,7 +31,7 @@
                     "awslogs-group": "/ecs/user-app-frontend",
                     "awslogs-create-group": "true",
                     "awslogs-region": "ap-south-1",
-                    "awslogs-stream-prefix": "ecs"
+                    "awslogs-stream-prefix": "frontend"
                 }
             },
             "mountPoints": [],
@@ -40,12 +50,13 @@
         }
     ],
     "cpu": "512",
+    "enableFaultInjection": false,
     "executionRoleArn": "arn:aws:iam::619576923139:role/dhruvi-task-role",
     "family": "user-app-frontend",
-    "memory": "2048",
+    "memory": "1024",
     "networkMode": "awsvpc",
     "placementConstraints": [],
-    "registeredAt": "2025-12-11T08:51:11.299Z",
+    "registeredAt": "2025-12-11T09:43:18.389Z",
     "registeredBy": "arn:aws:iam::619576923139:root",
     "requiresAttributes": [
         {
@@ -64,6 +75,9 @@
             "name": "com.amazonaws.ecs.capability.task-iam-role"
         },
         {
+            "name": "ecs.capability.container-health-check"
+        },
+        {
             "name": "ecs.capability.execution-role-ecr-pull"
         },
         {
@@ -79,13 +93,13 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "revision": 7,
+    "revision": 9,
     "runtimePlatform": {
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
     "status": "ACTIVE",
-    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:619576923139:task-definition/user-app-frontend:7",
+    "taskDefinitionArn": "arn:aws:ecs:ap-south-1:619576923139:task-definition/user-app-frontend:9",
     "taskRoleArn": "arn:aws:iam::619576923139:role/dhruvi-task-role",
     "volumes": [],
     "tags": []
