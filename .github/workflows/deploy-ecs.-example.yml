@@ -1,0 +1,85 @@
+name: Deploy to ECS Fargate
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-south-1
+  ECS_CLUSTER: user-app-cluster
+  ECS_SERVICE_BACKEND: user-app-backend-service
+  ECS_SERVICE_FRONTEND: user-app-frontend-service
+  ECS_TASK_DEFINITION_BACKEND: aws/backend-TD.json
+  ECS_TASK_DEFINITION_FRONTEND: aws/frontend-TD.json
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ============================
+      # BACKEND DEPLOYMENT
+      # ============================
+      - name: Render Backend task definition
+        id: backend-render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION_BACKEND }}
+          container-name: backend
+          image: ${{ steps.login-ecr.outputs.registry }}/user-app-backend:${{ github.sha }}
+
+      - name: Deploy Backend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.backend-render.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_BACKEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # ============================
+      # FRONTEND DEPLOYMENT
+      # ============================
+      - name: Render Frontend task definition
+        id: frontend-render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION_FRONTEND }}
+          container-name: frontend
+          image: ${{ steps.login-ecr.outputs.registry }}/user-app-frontend:${{ github.sha }}
+
+      - name: Deploy Frontend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.frontend-render.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_FRONTEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # ============================
+      # SUMMARY
+      # ============================
+      - name: Deployment Summary
+        run: |
+          echo "✅ Successfully deployed Backend & Frontend to ECS Fargate"
+          echo "Cluster: ${{ env.ECS_CLUSTER }}"
+          echo "Backend Service: ${{ env.ECS_SERVICE_BACKEND }}"
+          echo "Frontend Service: ${{ env.ECS_SERVICE_FRONTEND }}"

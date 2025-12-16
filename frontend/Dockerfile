@@ -1,5 +1,4 @@
-# Build stage
-FROM node:18-alpine as builder
+FROM node:18-alpine
 
 WORKDIR /app
 
@@ -9,24 +8,11 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source code and public files
-COPY src ./src
-COPY public ./public
+# Copy source
+COPY . .
 
-# Build React app
-RUN npm run build
-
-# Production stage
-FROM nginx:alpine
-
-# Copy built app from builder
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expose port (nginx now listens on 3000)
+# Expose React dev server port
 EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start React
+CMD ["npm", "start"]

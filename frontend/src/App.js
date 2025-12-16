@@ -76,7 +76,7 @@ function App() {
       <div className="container">
 
         <header className="header">
-          <h1>Dhruvi's User Input Application</h1>
+          <h1>Dhruvi's User Input Application....</h1>
           <p>Manage user information easily</p>
         </header>
 
