@@ -8,9 +8,9 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECS_CLUSTER: user-app-cluster
-  ECS_SERVICE_BACKEND: user-app-backend-service
-  ECS_SERVICE_FRONTEND: user-app-frontend-service
+  ECS_CLUSTER: my-app-cluster
+  ECS_SERVICE_BACKEND: backend-TD-service-1
+  ECS_SERVICE_FRONTEND: frontend-TD-service
   ECS_TASK_DEFINITION_BACKEND: aws/backend-TD.json
   ECS_TASK_DEFINITION_FRONTEND: aws/frontend-TD.json
 
