@@ -37,25 +37,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       # ============================
-      # BACKEND DEPLOYMENT
-      # ============================
-      - name: Render Backend task definition
-        id: backend-render
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION_BACKEND }}
-          container-name: backend
-          image: ${{ steps.login-ecr.outputs.registry }}/user-app-backend:${{ github.sha }}
-
-      - name: Deploy Backend to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.backend-render.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE_BACKEND }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
-
-      # ============================
       # FRONTEND DEPLOYMENT
       # ============================
       - name: Render Frontend task definition
@@ -71,6 +52,25 @@ jobs:
         with:
           task-definition: ${{ steps.frontend-render.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE_FRONTEND }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true  
+
+      # ============================
+      # BACKEND DEPLOYMENT
+      # ============================
+      - name: Render Backend task definition
+        id: backend-render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION_BACKEND }}
+          container-name: backend
+          image: ${{ steps.login-ecr.outputs.registry }}/user-app-backend:${{ github.sha }}
+
+      - name: Deploy Backend to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.backend-render.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE_BACKEND }}
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
