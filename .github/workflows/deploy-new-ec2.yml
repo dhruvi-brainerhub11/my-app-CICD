@@ -1,0 +1,50 @@
+name: Backend-Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-to-ec2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "."
+          target: "/home/ubuntu/user-app"
+
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/user-app
+
+            # Create backend.env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" > backend.env
+            echo "DB_PORT=${{ secrets.DB_PORT }}" >> backend.env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> backend.env
+            echo "DB_USER=${{ secrets.DB_USER }}" >> backend.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> backend.env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend.env
+            echo "NODE_ENV=production" >> backend.env
+
+            # Create frontend.env
+            echo "REACT_APP_API_URL=http://backend:5000" > frontend.env
+            echo "REACT_APP_API_TIMEOUT=30000" >> frontend.env
+
+            # Deploy Docker containers
+            docker compose down
+            docker compose build
+            docker compose up -d
