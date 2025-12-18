@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-on:
-  workflow_dispatch:
 
 jobs:
   deploy-to-ec2:
@@ -43,7 +41,7 @@ jobs:
             echo "NODE_ENV=production" >> backend.env
 
             # Create frontend.env
-            echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" > frontend.env
+            echo "REACT_APP_API_URL=${{ secrets.API_URL }}" > frontend.env
             echo "REACT_APP_API_TIMEOUT=30000" >> frontend.env
 
             # Deploy Docker containers
