@@ -5,16 +5,16 @@ require("dotenv").config();
 
 const app = express();
 
-/* =========================
+/* =====================
    ENV
-========================= */
+===================== */
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
 
-/* =========================
+/* =====================
    MIDDLEWARE
-========================= */
+===================== */
 app.use(express.json());
 app.use(
   cors({
@@ -23,25 +23,25 @@ app.use(
   })
 );
 
-/* =========================
+/* =====================
    DATABASE POOL
-========================= */
+===================== */
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,        // ✅ FIXED
+  host: process.env.DB_HOST,       // ✅ FIXED
   port: process.env.DB_PORT || 3306,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 
   waitForConnections: true,
-  connectionLimit: 5,
-  queueLimit: 10,
+  connectionLimit: 10,
+  queueLimit: 0,
   connectTimeout: 10000,
 });
 
-/* =========================
-   INIT DB (NON-BLOCKING)
-========================= */
+/* =====================
+   INIT DATABASE (NON-BLOCKING)
+===================== */
 async function initializeDatabase() {
   try {
     const connection = await pool.getConnection();
@@ -57,25 +57,22 @@ async function initializeDatabase() {
     `);
 
     connection.release();
-    console.log("Database tables initialized");
+    console.log("✅ Database initialized");
   } catch (err) {
-    console.error("Database init error:", err.message);
+    console.error("❌ Database init failed:", err.message);
   }
 }
 
-/* =========================
-   ROUTES
-========================= */
-app.get("/health", async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-    connection.release();
-    res.status(200).send("OK");
-  } catch {
-    res.status(500).send("DB NOT READY");
-  }
+/* =====================
+   HEALTH CHECK (NO DB)
+===================== */
+app.get("/health", (req, res) => {
+  return res.status(200).send("OK");
 });
 
+/* =====================
+   ROUTES
+===================== */
 app.get("/api/users", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -83,43 +80,84 @@ app.get("/api/users", async (req, res) => {
     );
     res.json({ success: true, data: rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
 app.post("/api/users", async (req, res) => {
   const { name, email, phone } = req.body;
-  if (!name || !email)
-    return res.status(400).json({ error: "Name & email required" });
+
+  if (!name || !email) {
+    return res.status(400).json({ error: "Name and email required" });
+  }
 
   try {
     const [result] = await pool.execute(
       "INSERT INTO users (name, email, phone) VALUES (?, ?, ?)",
       [name, email, phone || null]
     );
-    res.status(201).json({ id: result.insertId });
+
+    res.status(201).json({ success: true, id: result.insertId });
   } catch (err) {
-    if (err.code === "ER_DUP_ENTRY")
-      return res.status(400).json({ error: "Email exists" });
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({ error: "Email already exists" });
+    }
     res.status(500).json({ error: err.message });
   }
 });
 
-/* =========================
-   START SERVER
-========================= */
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Backend running on port ${PORT}`);
-  console.log(`Environment: ${NODE_ENV}`);
-  console.log(`CORS Origin: ${CORS_ORIGIN}`);
-  initializeDatabase();
+app.put("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phone } = req.body;
+
+  try {
+    const [result] = await pool.execute(
+      "UPDATE users SET name=?, email=?, phone=? WHERE id=?",
+      [name, email, phone || null, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-/* =========================
+app.delete("/api/users/:id", async (req, res) => {
+  try {
+    const [result] = await pool.execute(
+      "DELETE FROM users WHERE id=?",
+      [req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* =====================
+   START SERVER
+===================== */
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Backend running on port ${PORT}`);
+  console.log(`🌍 Environment: ${NODE_ENV}`);
+  console.log(`🔐 CORS Origin: ${CORS_ORIGIN}`);
+  initializeDatabase(); // non-blocking
+});
+
+/* =====================
    GRACEFUL SHUTDOWN
-========================= */
+===================== */
 process.on("SIGTERM", async () => {
-  console.log("Shutting down...");
+  console.log("SIGTERM received, shutting down...");
   await pool.end();
   server.close(() => process.exit(0));
 });
