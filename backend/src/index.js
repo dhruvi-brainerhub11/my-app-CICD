@@ -15,8 +15,26 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 /* ======================
    MIDDLEWARE
 ====================== */
-app.use(express.json());
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors({
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://13.232.243.78:3000'
+    ];
+
+    // allow requests with no origin (curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 
 /* ======================
    DB POOL

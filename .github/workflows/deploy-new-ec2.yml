@@ -43,7 +43,9 @@ jobs:
             # Create frontend.env
             echo "REACT_APP_API_URL=${{ secrets.API_URL }}" > ./frontend/.env
             echo "REACT_APP_API_TIMEOUT=30000" >> ./frontend/.env
+
             # Deploy Docker containers
+            
             docker compose down --remove-orphans
             docker compose build
             docker compose up -d
