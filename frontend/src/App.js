@@ -20,7 +20,7 @@ function App() {
     setError(null);
 
     try {
-      const response = await axios.get(`${API_URL}/api/users`);
+      const response = await axios.get(`${REACT_APP_API_URL}/api/users`);
       setUsers(response.data); // ✅ FIX: backend returns array directly
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to fetch users';
