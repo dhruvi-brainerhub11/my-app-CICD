@@ -42,7 +42,6 @@ jobs:
 
             # Create frontend.env
             echo "REACT_APP_API_URL=${{ secrets.API_URL }}" > ./frontend/.env
-            echo "REACT_APP_API_TIMEOUT=30000" >> ./frontend/.env
 
       - name: SSH into EC2 and Restart Docker Containers
         uses: appleboy/ssh-action@v1.0.3
