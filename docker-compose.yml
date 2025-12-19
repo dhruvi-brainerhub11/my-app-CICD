@@ -1,8 +1,5 @@
 
 services:
-  # =========================
-  # Backend (Node.js API)
-  # =========================
   backend:
     build:
       context: ./backend
@@ -22,9 +19,6 @@ services:
       retries: 5
       start_period: 20s
 
-  # =========================
-  # Frontend (React)
-  # =========================
   frontend:
     build:
       context: ./frontend
@@ -41,9 +35,6 @@ services:
       - user-app-network
     restart: unless-stopped
 
-# =========================
-# Networks
-# =========================
 networks:
   user-app-network:
     driver: bridge
