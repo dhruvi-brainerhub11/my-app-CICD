@@ -1,113 +1,120 @@
-const express = require('express');
-const mysql = require('mysql2/promise');
-const cors = require('cors');
-require('dotenv').config();
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import './App.css';
 
-const app = express();
+import UserForm from './components/UserForm';
+import UserList from './components/UserList';
 
-/* ======================
-   ENV
-====================== */
-const PORT = process.env.PORT || 5000;
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+function App() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-/* ======================
-   MIDDLEWARE
-====================== */
-app.use(express.json());
-app.use(cors({ origin: CORS_ORIGIN }));
+  // Backend API
+  const API_URL = process.env.REACT_APP_API_URL;
+  const API_TIMEOUT = Number(process.env.REACT_APP_API_TIMEOUT || 30000);
 
-/* ======================
-   DB POOL
-====================== */
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 10000,
-});
+  // Fetch all users
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-/* ======================
-   INIT DB (NON-BLOCKING)
-====================== */
-async function initDB() {
-  try {
-    const conn = await pool.getConnection();
-    await conn.execute(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        phone VARCHAR(20),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    conn.release();
-    console.log('Database ready');
-  } catch (err) {
-    console.error('DB init failed:', err.message);
-  }
+    try {
+      const response = await axios.get(`${API_URL}/api/users`, {
+        timeout: API_TIMEOUT,
+      });
+
+      // backend returns array directly
+      setUsers(response.data);
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Failed to fetch users';
+      setError(msg);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, API_TIMEOUT]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Add user
+  const handleAddUser = async (formData) => {
+    try {
+      await axios.post(
+        `${API_URL}/api/users`,
+        {
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          phone: formData.phone || null,
+        },
+        { timeout: API_TIMEOUT }
+      );
+
+      setSuccess('User added successfully!');
+      setError(null);
+      setTimeout(() => setSuccess(null), 2500);
+
+      fetchUsers();
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Failed to add user.';
+      setError(msg);
+      setSuccess(null);
+    }
+  };
+
+  // Delete user (future-safe even if backend not added yet)
+  const handleDeleteUser = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+
+    try {
+      await axios.delete(`${API_URL}/api/users/${id}`, {
+        timeout: API_TIMEOUT,
+      });
+
+      setSuccess('User deleted successfully!');
+      setTimeout(() => setSuccess(null), 2500);
+
+      fetchUsers();
+    } catch {
+      setError('Failed to delete user. Try again.');
+    }
+  };
+
+  return (
+    <div className="App">
+      <div className="container">
+        <header className="header">
+          <h1>Dhruvi's User Input Application....</h1>
+          <p>Manage user information easily</p>
+        </header>
+
+        {success && <div className="alert alert-success">{success}</div>}
+        {error && <div className="alert alert-error">{error}</div>}
+
+        <div className="content">
+          <div className="form-section">
+            <h2>Add New User</h2>
+            <UserForm onSubmit={handleAddUser} />
+          </div>
+
+          <div className="list-section">
+            <h2>Users List ({users.length})</h2>
+
+            {loading ? (
+              <div className="loading">Loading users...</div>
+            ) : users.length === 0 ? (
+              <div className="empty-state">No users found.</div>
+            ) : (
+              <UserList users={users} onDelete={handleDeleteUser} />
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-/* ======================
-   HEALTH (DO NOT TOUCH)
-====================== */
-app.get('/health', (req, res) => {
-  return res.status(200).send('OK');
-});
-
-/* ======================
-   READINESS (DB CHECK)
-====================== */
-app.get('/ready', async (req, res) => {
-  try {
-    const conn = await pool.getConnection();
-    conn.release();
-    return res.status(200).json({ db: 'connected' });
-  } catch {
-    return res.status(500).json({ db: 'down' });
-  }
-});
-
-/* ======================
-   ROUTES
-====================== */
-app.get('/api/users', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM users');
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/users', async (req, res) => {
-  const { name, email, phone } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ error: 'Name & email required' });
-  }
-  try {
-    const [r] = await pool.execute(
-      'INSERT INTO users (name,email,phone) VALUES (?,?,?)',
-      [name, email, phone || null]
-    );
-    res.status(201).json({ id: r.insertId });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/* ======================
-   START SERVER
-====================== */
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend running on ${PORT}`);
-  console.log(`ENV: ${NODE_ENV}`);
-  initDB();
-});
+export default App;
