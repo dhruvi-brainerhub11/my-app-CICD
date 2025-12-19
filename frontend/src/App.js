@@ -12,8 +12,7 @@ function App() {
   const [success, setSuccess] = useState(null);
 
   // Backend API
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  const API_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT, 10) || 30000;
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Fetch all users
   const fetchUsers = async () => {
