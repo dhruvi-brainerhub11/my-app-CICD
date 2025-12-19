@@ -3,6 +3,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache curl wget
+
 # Copy package files
 COPY package*.json ./
 
@@ -17,7 +19,7 @@ EXPOSE 5000
 
 # Health check
 #HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  #CMD wget -qO- http://localhost:5000/health || exit 1
+  #CMD curl -f http://localhost:5000/health || exit 1
 
 # Start application
 CMD ["npm", "start"]
