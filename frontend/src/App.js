@@ -11,14 +11,9 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // ✅ Backend runs on port 5000
+  // Backend API
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-  useEffect(() => {
-    if (!process.env.REACT_APP_API_URL) {
-      console.warn('⚠️ REACT_APP_API_URL not set! Using localhost:5000');
-    }
-  }, []);
+  const API_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT, 10) || 30000;
 
   // Fetch all users
   const fetchUsers = async () => {
@@ -27,19 +22,10 @@ function App() {
 
     try {
       const response = await axios.get(`${API_URL}/api/users`);
-      setUsers(response.data || []);
+      setUsers(response.data); // ✅ FIX: backend returns array directly
     } catch (err) {
-      console.error('Fetch error:', err);
-      
-      if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        setError('❌ Cannot connect to server. Is backend running on port 5000?');
-      } else if (err.response?.status === 404) {
-        setError('❌ API endpoint not found. Check backend routes at port 5000.');
-      } else {
-        const msg = err.response?.data?.error || err.message || 'Failed to fetch users';
-        setError(msg);
-      }
-      
+      const msg = err.response?.data?.error || 'Failed to fetch users';
+      setError(msg);
       setUsers([]);
     } finally {
       setLoading(false);
@@ -50,10 +36,8 @@ function App() {
     fetchUsers();
   }, []);
 
-  // Add user
+  // Add user (convert frontend fields → backend fields)
   const handleAddUser = async (formData) => {
-    setLoading(true);
-    
     try {
       await axios.post(`${API_URL}/api/users`, {
         name: `${formData.firstName} ${formData.lastName}`,
@@ -61,18 +45,15 @@ function App() {
         phone: formData.phone || null
       });
 
-      setSuccess("✅ User added successfully!");
+      setSuccess("User added successfully!");
       setError(null);
       setTimeout(() => setSuccess(null), 2500);
 
       fetchUsers();
     } catch (err) {
-      console.error('Add user error:', err);
-      const msg = err.response?.data?.error || err.message || "Failed to add user.";
-      setError(`❌ ${msg}`);
+      const msg = err.response?.data?.error || "Failed to add user.";
+      setError(msg);
       setSuccess(null);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -80,20 +61,14 @@ function App() {
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-    setLoading(true);
-    
     try {
       await axios.delete(`${API_URL}/api/users/${id}`);
-      setSuccess("✅ User deleted successfully!");
-      setError(null);
+      setSuccess("User deleted successfully!");
       setTimeout(() => setSuccess(null), 2500);
 
       fetchUsers();
     } catch (err) {
-      console.error('Delete error:', err);
-      setError("❌ Failed to delete user. Try again.");
-    } finally {
-      setLoading(false);
+      setError("Failed to delete user. Try again.");
     }
   };
 
@@ -102,9 +77,8 @@ function App() {
       <div className="container">
 
         <header className="header">
-          <h1>Dhruvi's User Input Application</h1>
+          <h1>Dhruvi's User Input Application....</h1>
           <p>Manage user information easily</p>
-          <small style={{ opacity: 0.6 }}>API: {API_URL}</small>
         </header>
 
         {success && <div className="alert alert-success">{success}</div>}
@@ -115,7 +89,7 @@ function App() {
           {/* Form */}
           <div className="form-section">
             <h2>Add New User</h2>
-            <UserForm onSubmit={handleAddUser} disabled={loading} />
+            <UserForm onSubmit={handleAddUser} />
           </div>
 
           {/* List */}
@@ -123,11 +97,9 @@ function App() {
             <h2>Users List ({users.length})</h2>
 
             {loading ? (
-              <div className="loading">⏳ Loading users...</div>
+              <div className="loading">Loading users...</div>
             ) : users.length === 0 ? (
-              <div className="empty-state">
-                📋 No users found. Add one above!
-              </div>
+              <div className="empty-state">No users found.</div>
             ) : (
               <UserList users={users} onDelete={handleDeleteUser} />
             )}
